@@ -21,7 +21,7 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
 
-    client_max_body_size 64M;
+    client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
     proxy_pass http://localhost:8008;
   }
 
@@ -39,7 +39,7 @@ server {
     proxy_set_header X-Real-IP $remote_addr;
     proxy_set_header X-Forwarded-Proto $scheme;
 
-    client_max_body_size 64M;
+    client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
     proxy_pass http://localhost:8008;
 
   }

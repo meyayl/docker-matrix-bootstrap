@@ -92,7 +92,7 @@ render_compose_file_and_execute(){
 }
 create_nginx_reverse_proxy_config(){
     # identify letsencryp certificate path
-    if [ -e /etc/nginx/conf.d/http.synapse.conf ];then
+    if [ -e /etc/nginx/appd.d/server.synapse.conf ];then
         for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
             if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
                 openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${HOSTNAME} > /dev/null 2>&1
@@ -103,7 +103,7 @@ create_nginx_reverse_proxy_config(){
                 fi
             fi
         done
-        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/appd.d/server.synapse.conf
         #nginx -s reload
     fi
 }
