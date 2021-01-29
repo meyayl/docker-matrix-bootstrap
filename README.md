@@ -2,7 +2,7 @@
 #  create data folders -> done
 #  setup postgres container -> done, part of compose
 #  setup pgadmin contaienr -> won't do
-#  maintaine reverse proxy setting for container -> TODO
+#  maintaine reverse proxy setting for container -> almost done, needs testing
 #  create synapse container -> done
 #  create homeserver.yml  -> done
 #  create domain specific log file ->  done
