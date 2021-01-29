@@ -90,7 +90,23 @@ render_compose_file_and_execute(){
     eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name "${DOCKER_COMPOSE_PROJECT}" --file  - $@ 
     cd "${opwd}"
 }
-
+create_nginx_reverse_proxy_config(){
+    # identify letsencryp certificate path
+    if [ -e /etc/nginx/conf.d/http.synapse.conf ];then
+        for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
+            if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
+                openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${HOSTNAME} > /dev/null 2>&1
+                domain_found=$?
+                if [ "${domain_found}" = "0" ]; then
+                    SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
+                    SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
+                fi
+            fi
+        done
+        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+        #nginx -s reload
+    fi
+}
 if [ -z "$1" ];then
     echo "provide param: prepare, fix or any docker-compose parameter"
     exit 1
@@ -102,6 +118,7 @@ case "$1" in
                 create_log_config
                 create_homeserver_yaml
                 render_homeserver_yaml
+                create_nginx_reverse_proxy_config
                 chown_synapse_volume_host_path
                 ;;
 

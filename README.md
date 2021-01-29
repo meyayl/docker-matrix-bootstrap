@@ -7,4 +7,4 @@
 #  create homeserver.yml  -> done
 #  create domain specific log file ->  done
 #  render config in homeserver.yml -> done
-#  fix file permissions -> partialy done
+#  fix file permissions -> partialy done // what about postgres?
