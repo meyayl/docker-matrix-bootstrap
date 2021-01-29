@@ -34,7 +34,6 @@ POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
 DOCKER_COMPOSE_PROJECT=matrix
 
 create_volume_host_path(){
-    
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
         if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}" ];then
             mkdir -p "${path}"
@@ -79,8 +78,11 @@ render_homeserver_yaml(){
     cd "${opwd}"
 }
 
-chown_synapse_volume_host_path(){
-    chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${SYNAPSE_VOLUME_HOST_PATH}"
+chown_volume_host_paths(){
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+        chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
+    done
+
 }
 
 render_compose_file_and_execute(){
