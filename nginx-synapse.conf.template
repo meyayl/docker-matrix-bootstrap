@@ -1,0 +1,66 @@
+server {
+  listen 443 ssl http2;
+  listen [::]:443 ssl http2;
+
+  server_name ${SYNAPSE_SERVER_NAME};
+  ssl_certificate  ${SYNAPSE_NGINX_FULLCHAIN};
+  ssl_certificate_key ${SYNAPSE_NGINX_PRIVKEY};
+  add_header Strict-Transport-Security "max-age=15768000; includeSubdomains; preload" always;
+
+  location / {
+
+    proxy_connect_timeout 600;
+    proxy_read_timeout 600;
+    proxy_send_timeout 600;
+    proxy_intercept_errors off;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection $connection_upgrade;
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    client_max_body_size 64M;
+    proxy_pass http://localhost:8008;
+  }
+
+  location ~* ^(\/_matrix|\/_synapse\/client) {
+
+    proxy_connect_timeout 600;
+    proxy_read_timeout 600;
+    proxy_send_timeout 600;
+    proxy_intercept_errors off;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "Upgrade";
+    proxy_set_header X-Forwarded-For $remote_addr;
+    proxy_set_header Host $http_host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-Proto $scheme;
+
+    client_max_body_size 64M;
+    proxy_pass http://localhost:8008;
+
+  }
+
+  location /.well-known/matrix/client {
+    return 200 '{"m.homeserver": {"base_url": "https://${SYNAPSE_SERVER_NAME}"}}';
+    add_header Content-Type application/json;
+    add_header Access-Control-Allow-Origin *;
+  }
+
+  location /.well-known/matrix/server {
+    return 200 '{"m.server": "${SYNAPSE_SERVER_NAME}"}';
+    add_header Content-Type application/json;
+    add_header Access-Control-Allow-Origin *;
+  }
+
+  error_page 403 404 500 502 503 504 @error_page;
+
+  location @error_page {
+    root /usr/syno/share/nginx;
+    rewrite (.*) /error.html break;
+    allow all;
+  }
+}
