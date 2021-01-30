@@ -13,6 +13,8 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 4. execute `./run.sh up -d`
 5. ?
 
+`run.sh` wraps calls to docker-compose, by rendering the variables into the docker-compose.template on the fly and uses the result with docker-compose. The `run.sh` script passes all options and parameters to docker-compose... Thus, whatever works with docker-compose directly, does work with it as well.
+
 ## What does the prepare step do?
 Basicly it creates and configures everything required to run the Matrix Synapse server:
 1. It creates data folders for Matrix Synapse and Postgresql and fixes file permissions
