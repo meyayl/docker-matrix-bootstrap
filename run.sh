@@ -1,7 +1,7 @@
 #!/bin/bash -e
 # change mandatory
 SYNAPSE_SERVER_NAME=matrix.XXX.de
-SYNAPSE_PUBLIC_BASEURL=https://matrix.XXX.de:8443
+SYNAPSE_PUBLIC_BASEURL=https://matrix.xxx.de:8443
 SYNAPSE_HOST_PORT_HTTP=8008
 SYNAPSE_UID=1026
 SYNAPSE_GID=100
@@ -111,8 +111,8 @@ create_nginx_reverse_proxy_config(){
         opwd="$PWD"
         cd $( dirname "$0" )
         eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
-    cd "${opwd}"
-        #nginx -s reload
+        nginx -s reload
+        cd "${opwd}"
     fi
 }
 
