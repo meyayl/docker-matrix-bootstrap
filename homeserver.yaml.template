@@ -1,7 +1,7 @@
 server_name: "${SYNAPSE_SERVER_NAME}"
 pid_file: /data/homeserver.pid
 
-public_baseurl: https://${SYNAPSE_SERVER_NAME}
+public_baseurl: ${SYNAPSE_PUBLIC_BASEURL}
 
 listeners:
   - port: 8008
@@ -42,7 +42,7 @@ report_stats: $([ "${SYNAPSE_REPORT_STATS}" = "no" ] && echo false || echo true 
 
 macaroon_secret_key: \"${SYNAPSE_MACAROON_SECRET_KEY}\"
 form_secret: \"${SYNAPSE_FROM_SECRET}\"
-signing_key_path: "${SYNAPSE_CONFIG_DIR}/my.matrix.host.signing.key"
+signing_key_path: "${SYNAPSE_CONFIG_DIR}/${SYNAPSE_SERVER_NAME}.signing.key"
 
 app_service_config_files:
 #  - "/data/mautrix-whatsapp/registration.yaml"
@@ -50,4 +50,4 @@ app_service_config_files:
 trusted_key_servers:
   - server_name: "matrix.org"
 
-suppress_key_server_warning: true
+#suppress_key_server_warning: true

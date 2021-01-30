@@ -5,7 +5,7 @@ server {
   server_name ${SYNAPSE_SERVER_NAME};
   ssl_certificate  ${SYNAPSE_NGINX_FULLCHAIN};
   ssl_certificate_key ${SYNAPSE_NGINX_PRIVKEY};
-  add_header Strict-Transport-Security "max-age=15768000; includeSubdomains; preload" always;
+  add_header Strict-Transport-Security \"max-age=15768000; includeSubdomains; preload\" always;
 
   location / {
 
@@ -14,12 +14,12 @@ server {
     proxy_send_timeout 600;
     proxy_intercept_errors off;
     proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection $connection_upgrade;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection \$connection_upgrade;
+    proxy_set_header X-Forwarded-For \$remote_addr;
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-Proto \$scheme;
 
     client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
     proxy_pass http://localhost:8008;
@@ -32,12 +32,12 @@ server {
     proxy_send_timeout 600;
     proxy_intercept_errors off;
     proxy_http_version 1.1;
-    proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "Upgrade";
-    proxy_set_header X-Forwarded-For $remote_addr;
-    proxy_set_header Host $http_host;
-    proxy_set_header X-Real-IP $remote_addr;
-    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header Upgrade \$http_upgrade;
+    proxy_set_header Connection \"Upgrade\";
+    proxy_set_header X-Forwarded-For \$remote_addr;
+    proxy_set_header Host \$http_host;
+    proxy_set_header X-Real-IP \$remote_addr;
+    proxy_set_header X-Forwarded-Proto \$scheme;
 
     client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
     proxy_pass http://localhost:8008;
@@ -45,13 +45,13 @@ server {
   }
 
   location /.well-known/matrix/client {
-    return 200 '{"m.homeserver": {"base_url": "https://${SYNAPSE_SERVER_NAME}"}}';
+    return 200 '{\"m.homeserver\": {\"base_url\": \"${SYNAPSE_PUBLIC_BASEURL}\"}}';
     add_header Content-Type application/json;
     add_header Access-Control-Allow-Origin *;
   }
 
   location /.well-known/matrix/server {
-    return 200 '{"m.server": "${SYNAPSE_SERVER_NAME}"}';
+    return 200 '{\"m.server\": \"${SYNAPSE_SERVER_NAME}\"}';
     add_header Content-Type application/json;
     add_header Access-Control-Allow-Origin *;
   }

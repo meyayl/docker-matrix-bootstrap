@@ -1,9 +1,10 @@
-#!/bin/bash -ex
+#!/bin/bash -e
 # change mandatory
-SYNAPSE_SERVER_NAME=my.matrix.host
+SYNAPSE_SERVER_NAME=matrix.XXX.de
+SYNAPSE_PUBLIC_BASEURL=https://matrix.XXX.de:8443
 SYNAPSE_HOST_PORT_HTTP=8008
-SYNAPSE_UID=991
-SYNAPSE_GID=991
+SYNAPSE_UID=1026
+SYNAPSE_GID=100
 
 SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/synapse/app/data
 POSTGRES_VOLUME_HOST_PATH=/volume2/docker/synapse/db/data
@@ -35,7 +36,7 @@ DOCKER_COMPOSE_PROJECT=matrix
 
 create_volume_host_path(){
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
-        if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}" ];then
+        if [ ! -e "${path}" ];then
             mkdir -p "${path}"
         fi
     done
@@ -74,7 +75,6 @@ render_homeserver_yaml(){
     SYNAPE_REGISTRATION_SHARED_SECRET=$(grep --perl-regexp --only-matching '(?<=^registration_shared_secret: ").*(?="$)' <<< "${homeserver}" )
     SYNAPSE_FROM_SECRET=$(grep --perl-regexp --only-matching '(?<=^form_secret: ").*(?="$)' <<< "${homeserver}" )
     eval "echo \"$(<homeserver.yaml.template)\"" > "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml"
-
     cd "${opwd}"
 }
 
@@ -89,24 +89,29 @@ render_compose_file_and_execute(){
     # render variables into template file to create final docker-compose.yml
     opwd="$PWD"
     cd $( dirname "$0" )
-    eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name "${DOCKER_COMPOSE_PROJECT}" --file  - $@ 
+    eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name ${DOCKER_COMPOSE_PROJECT} --file - $@
     cd "${opwd}"
 }
 
 create_nginx_reverse_proxy_config(){
     # identify letsencryp certificate path
-    if [ -e /etc/nginx/appd.d/server.synapse.conf ];then
+    if [  ! -e /etc/nginx/conf.d/http.synapse.conf ];then
         for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
             if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
-                openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${HOSTNAME} > /dev/null 2>&1
+                set +e
+                openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${SYNAPSE_SERVER_NAME} > /dev/null 2>&1
                 domain_found=$?
+                set -e
                 if [ "${domain_found}" = "0" ]; then
                     SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
                 fi
             fi
         done
-        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/appd.d/server.synapse.conf
+        opwd="$PWD"
+        cd $( dirname "$0" )
+        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+    cd "${opwd}"
         #nginx -s reload
     fi
 }
@@ -123,13 +128,13 @@ case "$1" in
                 create_homeserver_yaml
                 render_homeserver_yaml
                 create_nginx_reverse_proxy_config
-                chown_synapse_volume_host_path
+                chown_volume_host_paths
                 ;;
 
-    fixperms)   chown_synapse_volume_host_path
+    fixperms)   chown_volume_host_paths
                 ;;
 
-    *)          render_compose_file_and_execute
+    *)          render_compose_file_and_execute $@
                 ;;
 
 esac
