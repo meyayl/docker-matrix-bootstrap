@@ -12,7 +12,7 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 3. execute `sudo ./run.sh prepare`
 4. execute `./run.sh up -d`
 5. register user
-- from cli: docker exec -ti matrix_app_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008
+- from cli: `docker exec -ti matrix_app_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
 - from https://app.element.io/#/register (make sure to switch to your server before login!)
 6. login user: https://app.element.io/#/login (make sure to switch to your server before login!)
 
