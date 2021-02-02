@@ -1,6 +1,6 @@
 # Docker Matrix Bootstrap for Synology
 
-This project consists of a script to bootstrap a Matrix Synapse Server along with a Postgresql Server based on Docker Containers.
+This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
 It is specificly designed to work on a Synology NAS.
 
 ## Precondition
