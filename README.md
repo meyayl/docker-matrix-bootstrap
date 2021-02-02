@@ -10,8 +10,11 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 1. clone git project
 2. edit variables in run.sh
 3. execute `sudo ./run.sh prepare`
-4. execute `sudo ./run.sh up -d`
-5. ?
+4. execute `./run.sh up -d`
+5. register user:
+- from cli: docker exec -ti matrix_app_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008
+- from https://app.element.io/#/register : make sure to switch to your server before! User will be logged in after creation
+6. login user: https://app.element.io/#/register : make sure to switch to your server before!
 
 `run.sh` wraps calls to docker-compose, by rendering the variables into the docker-compose.template on the fly and uses the result with docker-compose. The `run.sh` script passes all options and parameters to docker-compose... Thus, whatever works with docker-compose directly, does work with it as well.
 
@@ -22,4 +25,4 @@ Basicly it creates and configures everything required to run the Matrix Synapse 
 3. It create a domain specific log configuration for Matrix Synapse and uses it in homeserver.yml
 4. It creates a reverse-proxy configuration
 
-Though, it does not start the containers... this is done by executing `sudo ./run.sh up -d`
+Though, it does not start the containers... this is done by executing `./run.sh up -d`
