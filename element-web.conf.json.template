@@ -1,0 +1,41 @@
+{
+    \"default_server_config\": {
+        \"m.homeserver\": {
+            \"base_url\": \"${SYNAPSE_PUBLIC_BASEURL}\",
+            \"server_name\": \"${SYNAPSE_SERVER_NAME}\"
+        },
+        \"m.identity_server\": {
+            \"base_url\": \"${SYNAPSE_PUBLIC_BASEURL}\"
+        }
+    },
+    \"disable_custom_urls\": false,
+    \"disable_guests\": false,
+    \"disable_login_language_selector\": false,
+    \"disable_3pid_login\": false,
+    \"brand\": \"Element\",
+    \"integrations_ui_url\": \"\",
+    \"integrations_rest_url\": \"\",
+    \"integrations_widgets_urls\": [],
+    \"bug_report_endpoint_url\": \"https://element.io/bugreports/submit\",
+    \"defaultCountryCode\": \"DE\",
+    \"showLabsSettings\": false,
+    \"features\": {
+        \"feature_new_spinner\": false
+    },
+    \"default_federate\": true,
+    \"default_theme\": \"light\",
+    \"roomDirectory\": {
+        \"servers\": [
+            \"matrix.org\"
+        ]
+    },
+    \"piwik\": false,
+    \"enable_presence_by_hs_url\": {
+        \"${SYNAPSE_PUBLIC_BASEURL}\": true,
+        \"https://matrix.org\": false,
+        \"https://matrix-client.matrix.org\": false
+    },
+    \"settingDefaults\": {
+        \"breadcrumbs\": true
+    }
+}

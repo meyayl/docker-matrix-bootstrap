@@ -2,7 +2,7 @@ version: '2.2'
 
 services:
 
-  app:
+  synapse:
     image: ${SYNAPSE_IMAGE}
     restart: unless-stopped
     healthcheck:
@@ -24,6 +24,16 @@ services:
     volumes:
       - ${SYNAPSE_VOLUME_HOST_PATH}:/data
 
+  element:
+    image: ${ELEMENT_IMAGE}
+    restart: unless-stopped
+    networks:
+      private: {}
+    ports:
+      - ${ELEMENT_HOST_PORT_HTTP}:80
+    volumes:
+      - ${ELEMENT_VOLUME_HOST_PATH}/conf.json:/app/config.json
+
   ${POSTGRES_HOST}:
     image: ${POSTGRES_IMAGE}
     restart: unless-stopped
@@ -40,6 +50,8 @@ services:
     volumes:
       - ${POSTGRES_VOLUME_HOST_PATH}:/var/lib/postgresql/data
       - /etc/passwd:/etc/passwd:ro # required to make user: work!
+
+
 
 networks:
   private: {}

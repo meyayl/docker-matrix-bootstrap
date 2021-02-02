@@ -1,13 +1,17 @@
 #!/bin/bash -e
 # change mandatory
-SYNAPSE_SERVER_NAME=matrix.XXX.de
+SYNAPSE_SERVER_NAME=matrix.xxx.de
 SYNAPSE_PUBLIC_BASEURL=https://matrix.xxx.de:8443
 SYNAPSE_HOST_PORT_HTTP=8008
 SYNAPSE_UID=1026
 SYNAPSE_GID=100
 
-SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/synapse/app/data
-POSTGRES_VOLUME_HOST_PATH=/volume2/docker/synapse/db/data
+ELEMENT_PUBLIC_BASEURL=https://element.xxx.de:8443
+ELEMENT_HOST_PORT_HTTP=8888
+
+SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
+ELEMENT_VOLUME_HOST_PATH=/volume2/docker/matrix/element/config
+POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
 
 # change optional
 SYNAPSE_MAX_UPLOAD_SIDE=64M
@@ -28,6 +32,8 @@ SYNAPSE_CONFIG_DIR=/data
 SYNAPSE_CONFIG_PATH=${SYNAPSE_CONFIG_DIR}/homeserver.yaml
 SYNAPSE_WORKER=synapse.app.homeserver
 
+ELEMENT_IMAGE=vectorim/element-web
+
 POSTGRES_IMAGE=postgres:13.1-alpine
 POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
 
@@ -35,7 +41,7 @@ POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
 DOCKER_COMPOSE_PROJECT=matrix
 
 create_volume_host_path(){
-    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
         if [ ! -e "${path}" ];then
             mkdir -p "${path}"
         fi
@@ -65,6 +71,7 @@ create_homeserver_yaml(){
 }
 
 render_homeserver_yaml(){
+    echo "rendering synapse homeserver.yaml"
     opwd="$PWD"
     cd $( dirname "$0" )
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak" ]; then
@@ -79,7 +86,7 @@ render_homeserver_yaml(){
 }
 
 chown_volume_host_paths(){
-    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
         chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
     done
 
@@ -95,25 +102,31 @@ render_compose_file_and_execute(){
 
 create_nginx_reverse_proxy_config(){
     # identify letsencryp certificate path
-    if [  ! -e /etc/nginx/conf.d/http.synapse.conf ];then
-        for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
-            if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
-                set +e
-                openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${SYNAPSE_SERVER_NAME} > /dev/null 2>&1
-                domain_found=$?
-                set -e
-                if [ "${domain_found}" = "0" ]; then
-                    SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
-                    SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
-                fi
+    for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
+        if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
+            set +e
+            openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${SYNAPSE_SERVER_NAME} > /dev/null 2>&1
+            domain_found=$?
+            set -e
+            if [ "${domain_found}" = "0" ]; then
+                SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
+                SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
             fi
-        done
-        opwd="$PWD"
-        cd $( dirname "$0" )
-        eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
-        nginx -s reload
-        cd "${opwd}"
-    fi
+        fi
+    done
+    opwd="$PWD"
+    cd $( dirname "$0" )
+    eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+    nginx -s reload
+    cd "${opwd}"
+}
+
+render_element_config(){
+    echo "rendering element config.json"
+    opwd="$PWD"
+    cd $( dirname "$0" )
+    eval "echo \"$(<element-web.conf.json.template)\"" > "${ELEMENT_VOLUME_HOST_PATH}/conf.json"
+    cd "${opwd}"
 }
 
 if [ -z "$1" ];then
@@ -127,6 +140,7 @@ case "$1" in
                 create_log_config
                 create_homeserver_yaml
                 render_homeserver_yaml
+                render_element_config
                 create_nginx_reverse_proxy_config
                 chown_volume_host_paths
                 ;;
