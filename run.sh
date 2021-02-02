@@ -1,61 +1,23 @@
 #!/bin/bash -e
-# change mandatory
-SYNAPSE_SERVER_NAME=matrix.xxx.de
-SYNAPSE_PUBLIC_BASEURL=https://matrix.xxx.de:8443
-SYNAPSE_HOST_PORT_HTTP=8008
-SYNAPSE_UID=1026
-SYNAPSE_GID=100
-
-ELEMENT_PUBLIC_BASEURL=https://element.xxx.de:8443
-ELEMENT_HOST_PORT_HTTP=8888
-
-SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
-ELEMENT_VOLUME_HOST_PATH=/volume2/docker/matrix/element/config
-POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
-
-# change optional
-SYNAPSE_MAX_UPLOAD_SIDE=64M
-SYNAPSE_ENABLE_REGISTRATION=true
-
-POSTGRES_HOST=db
-POSTGRES_DB=synapse
-POSTGRES_USER=synapse
-POSTGRES_PASSWORD=synapse
-
-# change if you know what you're doing
-SYNAPSE_IMAGE=matrixdotorg/synapse:latest
-SYNAPSE_REPORT_STATS=no
-SYNAPSE_TZ=Europe/Berlin
-SYNAPSE_NO_TLS=true
-SYNAPSE_DATA_DIR=/data
-SYNAPSE_CONFIG_DIR=/data
-SYNAPSE_CONFIG_PATH=${SYNAPSE_CONFIG_DIR}/homeserver.yaml
-SYNAPSE_WORKER=synapse.app.homeserver
-
-ELEMENT_IMAGE=vectorim/element-web
-
-POSTGRES_IMAGE=postgres:13.1-alpine
-POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
-
-# project name, will be prefix to *_SERVICE_NAME in container names
-DOCKER_COMPOSE_PROJECT=matrix
+source $( dirname "$0" )/config
 
 create_volume_host_path(){
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
         if [ ! -e "${path}" ];then
+            echo "creating host path for volume: ${path}"
             mkdir -p "${path}"
         fi
     done
 }
 
-
-create_log_config(){
+create_synapse_log_config(){
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/${SYNAPSE_SERVER_NAME}.log.config" ];then
+        echo "copying synapse log.conf"
         cp $( dirname "$0" )/log.template "${SYNAPSE_VOLUME_HOST_PATH}/${SYNAPSE_SERVER_NAME}.log.config"
     fi
 }
 
-create_homeserver_yaml(){
+create_synapse_homeserver_yaml(){
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml" ];then
         docker run -it --rm \
             -e SYNAPSE_SERVER_NAME=${SYNAPSE_SERVER_NAME} \
@@ -70,7 +32,7 @@ create_homeserver_yaml(){
     fi
 }
 
-render_homeserver_yaml(){
+render_synapse_homeserver_yaml(){
     echo "rendering synapse homeserver.yaml"
     opwd="$PWD"
     cd $( dirname "$0" )
@@ -87,6 +49,7 @@ render_homeserver_yaml(){
 
 chown_volume_host_paths(){
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+        echo "fixing permissions on ${path}"
         chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
     done
 
@@ -96,12 +59,14 @@ render_compose_file_and_execute(){
     # render variables into template file to create final docker-compose.yml
     opwd="$PWD"
     cd $( dirname "$0" )
+    echo "rendering docker-compose.yml and passing it to docker-compose"
     eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name ${DOCKER_COMPOSE_PROJECT} --file - $@
     cd "${opwd}"
 }
 
 create_nginx_reverse_proxy_config(){
     # identify letsencryp certificate path
+    echo "rendering reverse proxy configuration"
     for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
         if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
             set +e
@@ -117,11 +82,12 @@ create_nginx_reverse_proxy_config(){
     opwd="$PWD"
     cd $( dirname "$0" )
     eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+    echo "reloading nginx config to activate reverse proxy configuration"
     nginx -s reload
     cd "${opwd}"
 }
 
-render_element_config(){
+render_element_config_json(){
     echo "rendering element config.json"
     opwd="$PWD"
     cd $( dirname "$0" )
@@ -130,17 +96,17 @@ render_element_config(){
 }
 
 if [ -z "$1" ];then
-    echo "provide param: prepare, fix or any docker-compose parameter"
+    echo "provide param: prepare, fixperms or any docker-compose parameter"
     exit 1
 fi
 set -u
 case "$1" in
 
     prepare)    create_volume_host_path
-                create_log_config
-                create_homeserver_yaml
-                render_homeserver_yaml
-                render_element_config
+                create_synapse_log_config
+                create_synapse_homeserver_yaml
+                render_synapse_homeserver_yaml
+                render_element_config_json
                 create_nginx_reverse_proxy_config
                 chown_volume_host_paths
                 ;;

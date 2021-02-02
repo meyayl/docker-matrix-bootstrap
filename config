@@ -1,0 +1,40 @@
+#!/bin/bash -e
+# change mandatory
+SYNAPSE_SERVER_NAME=matrix.xxx.de
+SYNAPSE_PUBLIC_BASEURL=https://${SYNAPSE_SERVER_NAME}:8443
+SYNAPSE_HOST_PORT_HTTP=8008
+SYNAPSE_UID=1026
+SYNAPSE_GID=100
+
+ELEMENT_HOST_PORT_HTTP=8888
+
+SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
+ELEMENT_VOLUME_HOST_PATH=/volume2/docker/matrix/element/config
+POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
+
+# change optional
+SYNAPSE_MAX_UPLOAD_SIDE=64M
+SYNAPSE_ENABLE_REGISTRATION=true
+
+POSTGRES_HOST=db
+POSTGRES_DB=synapse
+POSTGRES_USER=synapse
+POSTGRES_PASSWORD=synapse
+
+# change if you know what you're doing
+SYNAPSE_IMAGE=matrixdotorg/synapse:latest
+SYNAPSE_REPORT_STATS=no
+SYNAPSE_TZ=Europe/Berlin
+SYNAPSE_NO_TLS=true
+SYNAPSE_DATA_DIR=/data
+SYNAPSE_CONFIG_DIR=/data
+SYNAPSE_CONFIG_PATH=${SYNAPSE_CONFIG_DIR}/homeserver.yaml
+SYNAPSE_WORKER=synapse.app.homeserver
+
+ELEMENT_IMAGE=vectorim/element-web
+
+POSTGRES_IMAGE=postgres:13.1-alpine
+POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
+
+# project name, will be prefix to *_SERVICE_NAME in container names
+DOCKER_COMPOSE_PROJECT=matrix

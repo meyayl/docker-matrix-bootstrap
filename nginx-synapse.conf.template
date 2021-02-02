@@ -22,7 +22,7 @@ server {
     proxy_set_header X-Forwarded-Proto \$scheme;
 
     client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
-    proxy_pass http://localhost:8008;
+    proxy_pass http://localhost:${ELEMENT_HOST_PORT_HTTP};
   }
 
   location ~* ^(\/_matrix|\/_synapse\/client) {
@@ -40,7 +40,7 @@ server {
     proxy_set_header X-Forwarded-Proto \$scheme;
 
     client_max_body_size ${SYNAPSE_MAX_UPLOAD_SIDE};
-    proxy_pass http://localhost:8008;
+    proxy_pass http://localhost:${SYNAPSE_HOST_PORT_HTTP};
 
   }
 
