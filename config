@@ -1,11 +1,25 @@
 #!/bin/bash -e
+
 # change mandatory
+
+# this declares the identifier of the synapse server. Used in homeserver.yaml and reverse proxy configuration.
 SYNAPSE_SERVER_NAME=matrix.xxx.de
+
+# this declares the base of the url to access the synapse server. Used in homeserver.yaml and reverse proxy configuration.
 SYNAPSE_PUBLIC_BASEURL=https://${SYNAPSE_SERVER_NAME}:8443
+
+# synapse container host port. Used in the reverse proxy configuration.
 SYNAPSE_HOST_PORT_HTTP=8008
+
+# make sure the uid and gid exists in your system. User for *_VOLUME_HOST_PATH and as UID/GID in synapse and postgresql
 SYNAPSE_UID=1026
 SYNAPSE_GID=100
 
+# this declares the base of the url to access the element server. Used in the reverse proxy configuration.
+# make sure to access element using it's public url.
+ELEMENT_SERVER_NAME=element.xxx.de
+
+# element container host port. Used in the reverse proxy configuration.
 ELEMENT_HOST_PORT_HTTP=8888
 
 SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
@@ -31,10 +45,12 @@ SYNAPSE_CONFIG_DIR=/data
 SYNAPSE_CONFIG_PATH=${SYNAPSE_CONFIG_DIR}/homeserver.yaml
 SYNAPSE_WORKER=synapse.app.homeserver
 
-ELEMENT_IMAGE=vectorim/element-web
+ELEMENT_IMAGE=vectorim/element-web:latest
 
 POSTGRES_IMAGE=postgres:13.1-alpine
+
+# this is needed to configure the database as synapse needs it! Don't touch!
 POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"
 
-# project name, will be prefix to *_SERVICE_NAME in container names
+# project name, will be prefix to *_SERVICE_NAME in container and docker network names
 DOCKER_COMPOSE_PROJECT=matrix

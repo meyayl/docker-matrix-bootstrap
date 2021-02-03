@@ -3,6 +3,8 @@
 This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
 It is specificly designed to work on a Synology NAS.
 
+Makre sure 
+
 ## Precondition
 The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVER_NAME` in Synology's certificate manager.
 
@@ -13,8 +15,8 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 4. execute `./run.sh up -d`
 5. register user
 - from cli: `docker exec -ti matrix_synapse_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
-- from self-hosted element: `https://${SYNAPSE_PUBLIC_BASEURL}/#/register`
-6. login user in self-hosted element: `https://${SYNAPSE_PUBLIC_BASEURL}/#/login`
+- from self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register`
+6. login user in self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/login`
 
 `run.sh` wraps calls to docker-compose, by rendering the variables into the docker-compose.template on the fly and uses the result with docker-compose. The `run.sh` script passes all options and parameters to docker-compose... Thus, whatever works with docker-compose directly, does work with it as well.
 

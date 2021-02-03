@@ -65,26 +65,56 @@ render_compose_file_and_execute(){
 }
 
 create_nginx_reverse_proxy_config(){
-    # identify letsencryp certificate path
-    echo "rendering reverse proxy configuration"
-    for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
-        if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
-            set +e
-            openssl x509 -in ${current_domain_cert}/cert.pem -text | grep DNS:${SYNAPSE_SERVER_NAME} > /dev/null 2>&1
-            domain_found=$?
-            set -e
-            if [ "${domain_found}" = "0" ]; then
-                SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
-                SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
-            fi
-        fi
-    done
     opwd="$PWD"
     cd $( dirname "$0" )
-    eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
-    echo "reloading nginx config to activate reverse proxy configuration"
-    nginx -s reload
+    # identify letsencryp certificate path
+    echo "rendering reverse proxy configuration"
+    synapse_found=false
+    element_found=false
+    error=false
+    if [ "${SYNAPSE_SERVER_NAME}" == "" ];then
+        echo "Synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
+        error=true
+    fi
+    if [ "${error}" == "false" ];then
+        for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
+            if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
+                cert_data=$(openssl x509 -in ${current_domain_cert}/cert.pem -text)
+                if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${SYNAPSE_SERVER_NAME}|\*\.${SYNAPSE_SERVER_NAME#*.})" -wc) -gt 0 ];then
+                    echo "synapse: matching certificate found for ${SYNAPSE_SERVER_NAME}"
+                    synapse_found=true
+                    SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
+                    SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
+                    eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+                fi
+                if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_SERVER_NAME}|\*\.${ELEMENT_SERVER_NAME#*.})" -wc) -gt 0 ];then
+                    echo "synapse: matching certificate found for ${ELEMENT_SERVER_NAME}"
+                    element_found=true
+                    ELEMENT_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
+                    ELEMENT_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
+                    eval "echo \"$(<nginx-element.conf.template)\"" > /etc/nginx/conf.d/http.element.conf
+                    reload=true
+                fi
+            fi
+        done
+        if [ "${synapse_found}" == "true" ] || [ "${element_found}" == "true" ] ;then
+            echo "reloading nginx config to activate reverse proxy configuration"
+            nginx -s reload
+        else
+            if [ "${synapse_found}" == "false" ]; then
+                echo "synapse: No matching certificate for found!"
+                error=true
+            fi
+            if [ "${element_found}" == "false" ]; then
+                echo "element: No matching certificate for found!"
+                error=true
+            fi
+        fi
+    fi
     cd "${opwd}"
+    if [ "${error}" == "true" ];then
+        exit 1
+    fi
 }
 
 render_element_config_json(){
