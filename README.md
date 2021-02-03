@@ -13,8 +13,8 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 4. execute `./run.sh up -d`
 5. register user
 - from cli: `docker exec -ti matrix_synapse_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
-- from self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register` (if ELEMENT_ENABLED=yes)
-6. login user in self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/login`(if ELEMENT_ENABLED=yes)
+- from self-hosted Element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register` (if ELEMENT_ENABLED=yes)
+6. login user in self-hosted Element: `https://${ELEMENT_PUBLIC_BASEURL}/#/login`(if ELEMENT_ENABLED=yes)
 
 If `ELEMENT_ENABLED` is not `yes`, Element will not be deployed and you will have to use another client!
 
@@ -27,5 +27,7 @@ Basicly it creates and configures everything required to run the Matrix Synapse 
 3. It creates a domain specific log configuration for Matrix Synapse and uses it in homeserver.yml
 4. It generates an Element config.json
 5. It creates a seperate reverse-proxy configuration for Synapse and Element
+
+_The actions for Element are only performed, if `ELEMENT_ENABLED` is set to `yes` in config._
 
 Though, it does not start the containers... this is done by executing `./run.sh up -d`.
