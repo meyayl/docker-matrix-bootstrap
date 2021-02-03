@@ -3,9 +3,16 @@ source $( dirname "$0" )/config
 
 create_volume_host_path(){
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
-        if [ ! -e "${path}" ];then
-            echo "creating host path for volume: ${path}"
-            mkdir -p "${path}"
+        if [ "$path" == "${ELEMENT_VOLUME_HOST_PATH}" ];then
+            if [ "${ELEMENT_ENABLED}" = "yes" ] && [ ! -e "${path}" ];then
+                echo "creating host path for volume: ${path}"
+                mkdir -p "${path}"
+            fi
+        else
+            if [ ! -e "${path}" ] ;then
+                echo "creating host path for volume: ${path}"
+                mkdir -p "${path}"
+            fi
         fi
     done
 }
@@ -49,10 +56,16 @@ render_synapse_homeserver_yaml(){
 
 chown_volume_host_paths(){
     for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
-        echo "fixing permissions on ${path}"
-        chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
+        if [ "$path" == "${ELEMENT_VOLUME_HOST_PATH}" ];then
+            if [ "${ELEMENT_ENABLED}" = "yes" ];then
+                echo "fixing permissions on ${path}"
+                chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
+            fi
+        else
+            echo "fixing permissions on ${path}"
+            chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
+        fi
     done
-
 }
 
 render_compose_file_and_execute(){
@@ -72,7 +85,8 @@ create_nginx_reverse_proxy_config(){
     synapse_found=false
     element_found=false
     error=false
-    if [ "${SYNAPSE_SERVER_NAME}" == "" ];then
+
+    if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${SYNAPSE_SERVER_NAME}" == "${ELEMENT_SERVER_NAME}" ];then
         echo "Synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
         error=true
     fi
@@ -81,14 +95,15 @@ create_nginx_reverse_proxy_config(){
             if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
                 cert_data=$(openssl x509 -in ${current_domain_cert}/cert.pem -text)
                 if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${SYNAPSE_SERVER_NAME}|\*\.${SYNAPSE_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${SYNAPSE_SERVER_NAME}"
+                    echo "synapse: matching certificate found for ${SYNAPSE_SERVER_NAME}, rending reverse proxy config"
                     synapse_found=true
                     SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
                     eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
+                    reload=true
                 fi
-                if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_SERVER_NAME}|\*\.${ELEMENT_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${ELEMENT_SERVER_NAME}"
+                if [ "${ELEMENT_ENABLED}" = "yes" ] && [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_SERVER_NAME}|\*\.${ELEMENT_SERVER_NAME#*.})" -wc) -gt 0 ];then
+                    echo "synapse: matching certificate found for ${ELEMENT_SERVER_NAME}, rending reverse proxy config"
                     element_found=true
                     ELEMENT_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     ELEMENT_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
@@ -105,7 +120,7 @@ create_nginx_reverse_proxy_config(){
                 echo "synapse: No matching certificate for found!"
                 error=true
             fi
-            if [ "${element_found}" == "false" ]; then
+            if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${element_found}" == "false" ]; then
                 echo "element: No matching certificate for found!"
                 error=true
             fi
@@ -118,11 +133,13 @@ create_nginx_reverse_proxy_config(){
 }
 
 render_element_config_json(){
-    echo "rendering element config.json"
-    opwd="$PWD"
-    cd $( dirname "$0" )
-    eval "echo \"$(<element-web.conf.json.template)\"" > "${ELEMENT_VOLUME_HOST_PATH}/conf.json"
-    cd "${opwd}"
+    if [ "${ELEMENT_ENABLED}" = "yes" ]; then
+        echo "rendering element config.json"
+        opwd="$PWD"
+        cd $( dirname "$0" )
+        eval "echo \"$(<element-web.conf.json.template)\"" > "${ELEMENT_VOLUME_HOST_PATH}/conf.json"
+        cd "${opwd}"
+    fi
 }
 
 if [ -z "$1" ];then

@@ -24,6 +24,7 @@ services:
     volumes:
       - ${SYNAPSE_VOLUME_HOST_PATH}:/data
 
+$([ "${ELEMENT_ENABLED}" = "yes" ] && cat <<EOF
   element:
     image: ${ELEMENT_IMAGE}
     restart: unless-stopped
@@ -33,6 +34,9 @@ services:
       - ${ELEMENT_HOST_PORT_HTTP}:80
     volumes:
       - ${ELEMENT_VOLUME_HOST_PATH}/conf.json:/app/config.json
+EOF
+)
+
 
   ${POSTGRES_HOST}:
     image: ${POSTGRES_IMAGE}

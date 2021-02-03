@@ -1,0 +1,9 @@
+rendering synapse homeserver.yaml
+rendering element config.json
+rendering reverse proxy configuration
+synapse: matching certificate found for matrix.geekturf.de, rending reverse proxy config
+synapse: matching certificate found for element.geekturf.de, rending reverse proxy config
+reloading nginx config to activate reverse proxy configuration
+fixing permissions on /volume2/docker/matrix/synapse/data
+fixing permissions on /volume2/docker/matrix/element/config
+fixing permissions on /volume2/docker/matrix/db/data
