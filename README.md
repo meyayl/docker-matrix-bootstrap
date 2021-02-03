@@ -3,8 +3,6 @@
 This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
 It is specificly designed to work on a Synology NAS.
 
-Makre sure 
-
 ## Precondition
 The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVER_NAME` in Synology's certificate manager.
 
@@ -26,6 +24,6 @@ Basicly it creates and configures everything required to run the Matrix Synapse 
 2. It generate a homeserver.yml, gathers instance unique information from it and renders an opionated homeserver.yml
 3. It create a domain specific log configuration for Matrix Synapse and uses it in homeserver.yml
 4. It generates an Element config.json
-5. It creates a reverse-proxy configuration for Synapse and Element
+5. It creates a seperate reverse-proxy configuration for Synapse and Element
 
 Though, it does not start the containers... this is done by executing `./run.sh up -d`
