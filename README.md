@@ -13,8 +13,10 @@ The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVE
 4. execute `./run.sh up -d`
 5. register user
 - from cli: `docker exec -ti matrix_synapse_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
-- from self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register`
-6. login user in self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/login`
+- from self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register` (if ELEMENT_ENABLED=yes)
+6. login user in self-hosted element: `https://${ELEMENT_PUBLIC_BASEURL}/#/login`(if ELEMENT_ENABLED=yes)
+
+If `ELEMENT_ENABLED` is not `yes`, Element will not be deployed and you will have to use another client!
 
 `run.sh` wraps calls to docker-compose, by rendering the variables into the docker-compose.template on the fly and uses the result with docker-compose. The `run.sh` script passes all options and parameters to docker-compose... Thus, whatever works with docker-compose directly, does work with it as well.
 
