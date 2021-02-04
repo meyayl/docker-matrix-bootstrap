@@ -87,7 +87,7 @@ create_nginx_reverse_proxy_config(){
     error=false
 
     if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${SYNAPSE_SERVER_NAME}" == "${ELEMENT_SERVER_NAME}" ];then
-        echo "Synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
+        echo "synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
         error=true
     fi
     if [ "${error}" == "false" ];then

@@ -4,7 +4,12 @@ This project consists of a script to bootstrap a Matrix Synapse Server, an Eleme
 It is specificly designed to work on a Synology NAS.
 
 ## Precondition
-The script expects a (Lets Encrypt) certificate registered to the `SYNAPSE_SERVER_NAME` in Synology's certificate manager.
+The script expects (Let's Encrypt) certificates registered in Synology's certificate manager for:
+- `SYNAPSE_SERVER_NAME`
+- `ELEMENT_SERVER_NAME` (if ELEMENT_ENABLED=yes)
+
+It will detect certificates either registered to a sub domain or wildcard domain.
+Make sure to have seperate sub domains for Synapse and Element, as running them using the same sub domain is a potential security risk.
 
 ## How to use
 1. clone git project
