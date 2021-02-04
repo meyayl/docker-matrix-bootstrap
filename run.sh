@@ -86,24 +86,30 @@ create_nginx_reverse_proxy_config(){
     element_found=false
     error=false
 
-    if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${SYNAPSE_SERVER_NAME}" == "${ELEMENT_SERVER_NAME}" ];then
+    SYNAPSE_REVERSE_PROXY_SERVER_NAME=$(grep --perl-regexp --only-matching '(?<=^https://).*(?=(:.*$))' <<< "${SYNAPSE_PUBLIC_BASEURL}")
+    if [ "${ELEMENT_ENABLED}" = "yes" ];then
+        ELEMENT_REVERSE_PROXY_SERVER_NAME=$(grep --perl-regexp --only-matching '(?<=^https://).*(?=(:.*$))' <<< "${ELEMENT_PUBLIC_BASEURL}")
+    fi
+
+    if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${SYNAPSE_REVERSE_PROXY_SERVER_NAME}" == "${ELEMENT_REVERSE_PROXY_SERVER_NAME}" ];then
         echo "synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
         error=true
     fi
+
     if [ "${error}" == "false" ];then
         for current_domain_cert in /usr/syno/etc/certificate/_archive/*; do
             if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
                 cert_data=$(openssl x509 -in ${current_domain_cert}/cert.pem -text)
-                if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${SYNAPSE_SERVER_NAME}|\*\.${SYNAPSE_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${SYNAPSE_SERVER_NAME}, rending reverse proxy config"
+                if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${SYNAPSE_REVERSE_PROXY_SERVER_NAME}|\*\.${SYNAPSE_REVERSE_PROXY_SERVER_NAME#*.})" -wc) -gt 0 ];then
+                    echo "synapse: matching certificate found for ${SYNAPSE_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config"
                     synapse_found=true
                     SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
                     eval "echo \"$(<nginx-synapse.conf.template)\"" > /etc/nginx/conf.d/http.synapse.conf
                     reload=true
                 fi
-                if [ "${ELEMENT_ENABLED}" = "yes" ] && [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_SERVER_NAME}|\*\.${ELEMENT_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${ELEMENT_SERVER_NAME}, rending reverse proxy config"
+                if [ "${ELEMENT_ENABLED}" = "yes" ] && [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_REVERSE_PROXY_SERVER_NAME}|\*\.${ELEMENT_REVERSE_PROXY_SERVER_NAME#*.})" -wc) -gt 0 ];then
+                    echo "synapse: matching certificate found for ${ELEMENT_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config"
                     element_found=true
                     ELEMENT_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     ELEMENT_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem

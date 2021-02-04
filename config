@@ -1,12 +1,15 @@
 #!/bin/bash -e
-
+#########################################
 # change mandatory
+#########################################
 
-# this declares the identifier of the synapse server. Used in homeserver.yaml and reverse proxy configuration.
-SYNAPSE_SERVER_NAME=matrix.xxx.de
+# this declares the identifier of the synapse server - this is NOT you url
+# see: https://github.com/matrix-org/synapse/blob/master/INSTALL.md#choosing-your-server-name
+SYNAPSE_SERVER_NAME=xxx.de
 
 # this declares the base of the url to access the synapse server. Used in homeserver.yaml and reverse proxy configuration.
-SYNAPSE_PUBLIC_BASEURL=https://${SYNAPSE_SERVER_NAME}:8443
+# explicitly provide the port, even if its port 443!
+SYNAPSE_PUBLIC_BASEURL=https://matrix.xxx.de:8443
 
 # synapse container host port. Used in the reverse proxy configuration.
 SYNAPSE_HOST_PORT_HTTP=8008
@@ -19,7 +22,8 @@ SYNAPSE_GID=100
 ELEMENT_ENABLED=yes
 # this declares the base of the url to access the element server. Used in the reverse proxy configuration.
 # make sure to access element using it's public url.
-ELEMENT_SERVER_NAME=element.xxx.de
+# explicitly provide the port, even if its port 443!
+ELEMENT_PUBLIC_BASEURL=https://element.xxx.de:8443
 
 # element container host port. Used in the reverse proxy configuration.
 ELEMENT_HOST_PORT_HTTP=8888
@@ -28,7 +32,10 @@ SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
 ELEMENT_VOLUME_HOST_PATH=/volume2/docker/matrix/element/config
 POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
 
+#########################################
 # change optional
+#########################################
+
 SYNAPSE_MAX_UPLOAD_SIDE=64M
 SYNAPSE_ENABLE_REGISTRATION=true
 
@@ -37,7 +44,10 @@ POSTGRES_DB=synapse
 POSTGRES_USER=synapse
 POSTGRES_PASSWORD=synapse
 
+#########################################
 # change if you know what you're doing
+#########################################
+
 SYNAPSE_IMAGE=matrixdotorg/synapse:latest
 SYNAPSE_REPORT_STATS=no
 SYNAPSE_TZ=Europe/Berlin

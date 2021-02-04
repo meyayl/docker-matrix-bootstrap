@@ -2,7 +2,7 @@ server {
   listen 443 ssl http2;
   listen [::]:443 ssl http2;
 
-  server_name ${ELEMENT_SERVER_NAME};
+  server_name ${ELEMENT_REVERSE_PROXY_SERVER_NAME};
   ssl_certificate  ${ELEMENT_NGINX_FULLCHAIN};
   ssl_certificate_key ${ELEMENT_NGINX_PRIVKEY};
   add_header Strict-Transport-Security \"max-age=15768000; includeSubdomains; preload\" always;
