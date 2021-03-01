@@ -10,7 +10,7 @@ The script expects (Let's Encrypt) certificates registered in Synology's certifi
 
 It will detect certificates either registered to a sub domain or wildcard domain.
 
-Make sure to have seperate sub domains for Synapse and Element, as running them using the same sub domain is a [potential security risk](https://github.com/vector-im/element-web#important-security-note).
+Make sure to have seperate sub domains for Synapse and Element, as running them using the same sub domain is a [potential security risk](https://github.com/vector-im/element-web#important-security-notes).
 
 ## How to use
 1. clone git project
