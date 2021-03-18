@@ -46,6 +46,7 @@ create_synapse_log_config(){
 
 create_synapse_homeserver_yaml(){
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml" ];then
+        printf "[ ${GREEN}OK${NC} ] running synapse container to generate the homseerver.yaml\n"
         docker run -it --rm \
             -e SYNAPSE_SERVER_NAME=${SYNAPSE_SERVER_NAME} \
             -e SYNAPSE_REPORT_STATS=${SYNAPSE_REPORT_STATS} \
@@ -57,6 +58,7 @@ create_synapse_homeserver_yaml(){
             -v "${SYNAPSE_VOLUME_HOST_PATH}:${SYNAPSE_CONFIG_DIR}:rw" \
             ${SYNAPSE_IMAGE} generate
         printf "[ ${GREEN}OK${NC} ] generated homeserver.yaml\n"
+		printf "[ ${GREEN}OK${NC} ] stopped synapse container for further configuration\n"
     else 
         printf "[ ${GREEN}OK${NC} ] re-using existing homeserver.yaml (delete \"${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml and ${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak\" if you want a fresh start)\n"
     fi
@@ -118,6 +120,15 @@ render_compose_file_and_execute(){
     printf "[ ${GREEN}OK${NC} ] rendering docker-compose.yml and passing it to docker-compose\n"
     eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name ${DOCKER_COMPOSE_PROJECT} --file - $@
     cd "${opwd}"
+}
+
+write_compose(){
+
+    opwd="$PWD"
+    cd $( dirname "$0" )
+    printf "[ ${GREEN}OK${NC} ] render and write docker-compose.yml\n"
+    eval "echo \"$(<docker-compose.template)\"" > docker-compose.yml
+	cd "${opwd}"
 }
 
 create_nginx_reverse_proxy_config(){
@@ -238,6 +249,8 @@ case "$1" in
 
     clean)      clean
                 ;;
+    write-compose)   write_compose
+	            ;;
     fixperms)   sanity_check
                 chown_volume_host_paths
                 ;;
