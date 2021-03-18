@@ -1,0 +1,50 @@
+server_name: \"${SYNAPSE_SERVER_NAME}\"
+pid_file: /data/homeserver.pid
+
+public_baseurl: \"${SYNAPSE_PUBLIC_BASEURL}\"
+
+listeners:
+  - port: 8008
+    bind_addresses:
+      - '::'
+      - '0.0.0.0'
+    tls: false
+    type: http
+    x_forwarded: true
+    resources:
+      - names: [client, federation]
+        compress: false
+
+database:
+  name: psycopg2
+  args:
+    user: ${POSTGRES_USER}
+    password: '${POSTGRES_PASSWORD}'
+    database: ${POSTGRES_DB}
+    host: ${POSTGRES_HOST}
+    cp_min: 5
+    cp_max: 10
+
+log_config: \"${SYNAPSE_CONFIG_DIR}/${SYNAPSE_SERVER_NAME}.log.config\"
+
+media_store_path: \"${SYNAPSE_DATA_DIR}/media_store\"
+
+
+max_upload_size: ${SYNAPSE_MAX_UPLOAD_SIDE}
+
+url_preview_accept_language:
+  - de-DE
+
+enable_registration: ${SYNAPSE_ENABLE_REGISTRATION}
+
+registration_shared_secret: \"${SYNAPE_REGISTRATION_SHARED_SECRET}\"
+
+
+form_secret: \"${SYNAPSE_FROM_SECRET}\"
+signing_key_path: \"${SYNAPSE_CONFIG_DIR}/${SYNAPSE_SERVER_NAME}.signing.key\"
+
+
+trusted_key_servers:
+  - server_name: \"matrix.org\"
+
+suppress_key_server_warning: true

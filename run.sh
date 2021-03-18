@@ -1,25 +1,45 @@
 #!/bin/bash -e
 source $( dirname "$0" )/config
 
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
 create_volume_host_path(){
-    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}" ; do
         if [ "$path" == "${ELEMENT_VOLUME_HOST_PATH}" ];then
-            if [ "${ELEMENT_ENABLED}" = "yes" ] && [ ! -e "${path}" ];then
-                echo "creating host path for volume: ${path}"
-                mkdir -p "${path}"
+            if [ "${ELEMENT_ENABLED}" = "yes" ];then
+                if [ ! -e "${path}" ];then
+                    mkdir -p "${path}"
+                    printf "[ ${GREEN}OK${NC} ] created host path for volume: ${path}\n"
+                else
+                    printf "[ ${GREEN}OK${NC} ] re-using host path for volume: ${path}\n"
+                fi
+            fi
+        elif [ "$path" == "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}" ];then
+            if [ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ];then
+                if [ ! -e "${path}" ];then
+                    mkdir -p "${path}"
+                    printf "[ ${GREEN}OK${NC} ] created host path for volume: ${path}\n"
+                else
+                    printf "[ ${GREEN}OK${NC} ] re-using host path for volume: ${path}\n"
+                fi
             fi
         else
             if [ ! -e "${path}" ] ;then
-                echo "creating host path for volume: ${path}"
                 mkdir -p "${path}"
+                printf "[ ${GREEN}OK${NC} ] created host path for volume: ${path}\n"
+            else
+                printf "[ ${GREEN}OK${NC} ] re-using host path for volume: ${path}\n"
             fi
         fi
+        
     done
 }
 
 create_synapse_log_config(){
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/${SYNAPSE_SERVER_NAME}.log.config" ];then
-        echo "copying synapse log.conf"
+        printf "[ ${GREEN}OK${NC} ] copying synapse log.conf\n"
         cp $( dirname "$0" )/log.template "${SYNAPSE_VOLUME_HOST_PATH}/${SYNAPSE_SERVER_NAME}.log.config"
     fi
 }
@@ -36,11 +56,29 @@ create_synapse_homeserver_yaml(){
             -e GID=${SYNAPSE_GID} \
             -v "${SYNAPSE_VOLUME_HOST_PATH}:${SYNAPSE_CONFIG_DIR}:rw" \
             ${SYNAPSE_IMAGE} generate
+        printf "[ ${GREEN}OK${NC} ] generated homeserver.yaml\n"
+    else 
+        printf "[ ${GREEN}OK${NC} ] re-using existing homeserver.yaml (delete \"${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml and ${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak\" if you want a fresh start)\n"
+    fi
+}
+
+render_mautrix_whatsapp_config_yaml(){
+    if [ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ];then
+        if [ ! -e "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}/registration.yaml" ];then
+            printf "[ ${GREEN}OK${NC} ] rendering mautrix-whatsapp config.yaml\n"
+            opwd="$PWD"
+            cd $( dirname "$0" )
+            SYNAPSE_REVERSE_PROXY_SERVER_NAME=$(grep --perl-regexp --only-matching '(?<=^https://).*(?=(:.*$))' <<< "${SYNAPSE_PUBLIC_BASEURL}")
+            eval "echo \"$(<mautrix-whatsapp.config.yaml.template)\"" > "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}/config.yaml"
+            cd "${opwd}"
+            printf "[ ${GREEN}OK${NC} ] running mautrix-whatsapp registration.yaml\n"
+            docker run --rm -v "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}:/data" "${MAUTRIX_WHATSAPP_IMAGE}"
+        fi
     fi
 }
 
 render_synapse_homeserver_yaml(){
-    echo "rendering synapse homeserver.yaml"
+    printf "[ ${GREEN}OK${NC} ] rendering synapse homeserver.yaml\n"
     opwd="$PWD"
     cd $( dirname "$0" )
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak" ]; then
@@ -55,14 +93,19 @@ render_synapse_homeserver_yaml(){
 }
 
 chown_volume_host_paths(){
-    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}"; do
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}"; do
         if [ "$path" == "${ELEMENT_VOLUME_HOST_PATH}" ];then
             if [ "${ELEMENT_ENABLED}" = "yes" ];then
-                echo "fixing permissions on ${path}"
+                printf "[ ${GREEN}OK${NC} ] fixing permissions on ${path}\n"
+                chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
+            fi
+        elif [ "$path" == "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}" ];then
+            if [ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ];then
+                printf "[ ${GREEN}OK${NC} ] fixing permissions on ${path}\n"
                 chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
             fi
         else
-            echo "fixing permissions on ${path}"
+            printf "[ ${GREEN}OK${NC} ] fixing permissions on ${path}\n"
             chown ${SYNAPSE_UID}:${SYNAPSE_GID} -R "${path}"
         fi
     done
@@ -72,7 +115,7 @@ render_compose_file_and_execute(){
     # render variables into template file to create final docker-compose.yml
     opwd="$PWD"
     cd $( dirname "$0" )
-    echo "rendering docker-compose.yml and passing it to docker-compose"
+    printf "[ ${GREEN}OK${NC} ] rendering docker-compose.yml and passing it to docker-compose\n"
     eval "echo \"$(<docker-compose.template)\"" | docker-compose --project-name ${DOCKER_COMPOSE_PROJECT} --file - $@
     cd "${opwd}"
 }
@@ -81,7 +124,6 @@ create_nginx_reverse_proxy_config(){
     opwd="$PWD"
     cd $( dirname "$0" )
     # identify letsencryp certificate path
-    echo "rendering reverse proxy configuration"
     synapse_found=false
     element_found=false
     error=false
@@ -92,7 +134,7 @@ create_nginx_reverse_proxy_config(){
     fi
 
     if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${SYNAPSE_REVERSE_PROXY_SERVER_NAME}" == "${ELEMENT_REVERSE_PROXY_SERVER_NAME}" ];then
-        echo "synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note"
+        printf "[ ${RED}ERROR${NC} ] synapse and element are not allowed to share the same domain, see: https://github.com/vector-im/element-web#important-security-note. Fix the issue and run prepare again!\n"
         error=true
     fi
 
@@ -101,7 +143,7 @@ create_nginx_reverse_proxy_config(){
             if [ -d ${current_domain_cert} ] && [ -f ${current_domain_cert}/cert.pem ]; then
                 cert_data=$(openssl x509 -in ${current_domain_cert}/cert.pem -text)
                 if [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${SYNAPSE_REVERSE_PROXY_SERVER_NAME}|\*\.${SYNAPSE_REVERSE_PROXY_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${SYNAPSE_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config"
+                    printf "[ ${GREEN}OK${NC} ] synapse: matching certificate found for ${SYNAPSE_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config\n"
                     synapse_found=true
                     SYNAPSE_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     SYNAPSE_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
@@ -109,7 +151,7 @@ create_nginx_reverse_proxy_config(){
                     reload=true
                 fi
                 if [ "${ELEMENT_ENABLED}" = "yes" ] && [ $(echo "${cert_data}" | grep -E "(CN=|DNS:)(${ELEMENT_REVERSE_PROXY_SERVER_NAME}|\*\.${ELEMENT_REVERSE_PROXY_SERVER_NAME#*.})" -wc) -gt 0 ];then
-                    echo "synapse: matching certificate found for ${ELEMENT_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config"
+                    printf "[ ${GREEN}OK${NC} ] element: matching certificate found for ${ELEMENT_REVERSE_PROXY_SERVER_NAME}, rending reverse proxy config\n"
                     element_found=true
                     ELEMENT_NGINX_PRIVKEY=${current_domain_cert}/privkey.pem
                     ELEMENT_NGINX_FULLCHAIN=${current_domain_cert}/fullchain.pem
@@ -119,15 +161,15 @@ create_nginx_reverse_proxy_config(){
             fi
         done
         if [ "${synapse_found}" == "true" ] || [ "${element_found}" == "true" ] ;then
-            echo "reloading nginx config to activate reverse proxy configuration"
+            printf "[ ${GREEN}OK${NC} ] reloading nginx config to activate reverse proxy configuration\n"
             nginx -s reload
         else
             if [ "${synapse_found}" == "false" ]; then
-                echo "synapse: No matching certificate for found!"
+                printf "[ ${RED}ERROR${NC} ] synapse: No matching certificate for found!\n"
                 error=true
             fi
             if [ "${ELEMENT_ENABLED}" = "yes" ] && [ "${element_found}" == "false" ]; then
-                echo "element: No matching certificate for found!"
+                printf "[ ${RED}ERROR${NC} ] element: No matching certificate for found!\n"
                 error=true
             fi
         fi
@@ -140,7 +182,7 @@ create_nginx_reverse_proxy_config(){
 
 render_element_config_json(){
     if [ "${ELEMENT_ENABLED}" = "yes" ]; then
-        echo "rendering element config.json"
+        printf "[ ${GREEN}OK${NC} ] rendering element config.json\n"
         opwd="$PWD"
         cd $( dirname "$0" )
         eval "echo \"$(<element-web.conf.json.template)\"" > "${ELEMENT_VOLUME_HOST_PATH}/conf.json"
@@ -148,23 +190,56 @@ render_element_config_json(){
     fi
 }
 
+function sanity_check() {
+    if [ $(id -u) -ne 0 ];then
+        printf "[ ${RED}ERROR${NC} ] this script needs to be run as root, preferebly using sudo!\n"
+        exit 1
+    fi
+}
+
+function clean(){
+    for path in "${SYNAPSE_VOLUME_HOST_PATH}" "${POSTGRES_VOLUME_HOST_PATH}" "${ELEMENT_VOLUME_HOST_PATH}" "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}"; do
+        if [ "$path" == "${ELEMENT_VOLUME_HOST_PATH}" ];then
+            if [ "${ELEMENT_ENABLED}" = "yes" ];then
+                printf "[ ${GREEN}OK${NC} ] deleting ${path}\n"
+                rm -rf "${path}"
+            fi
+        elif [ "$path" == "${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}" ];then
+            if [ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ];then
+                printf "[ ${GREEN}OK${NC} ] deleting ${path}\n"
+                rm -rf "${path}"
+            fi
+        else
+            printf "[ ${GREEN}OK${NC} ] deleting ${path}\n"
+            rm -rf "${path}"
+        fi
+    done
+}
+
+
 if [ -z "$1" ];then
-    echo "provide param: prepare, fixperms or any docker-compose parameter"
+    printf "[ ${RED}ERROR${NC} ] provide param: prepare, fixperms or any docker-compose parameter\n"
     exit 1
 fi
 set -u
+
 case "$1" in
 
-    prepare)    create_volume_host_path
+    prepare)    sanity_check
+                create_volume_host_path
                 create_synapse_log_config
                 create_synapse_homeserver_yaml
                 render_synapse_homeserver_yaml
                 render_element_config_json
-                create_nginx_reverse_proxy_config
                 chown_volume_host_paths
+                create_nginx_reverse_proxy_config
+                render_mautrix_whatsapp_config_yaml
                 ;;
 
-    fixperms)   chown_volume_host_paths
+    clean)      clean
+                ;;
+    fixperms)   sanity_check
+                chown_volume_host_paths
                 ;;
 
     *)          render_compose_file_and_execute $@

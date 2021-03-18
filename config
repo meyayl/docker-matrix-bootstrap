@@ -28,9 +28,18 @@ ELEMENT_PUBLIC_BASEURL=https://element.xxx.de:8443
 # element container host port. Used in the reverse proxy configuration.
 ELEMENT_HOST_PORT_HTTP=8888
 
+MAUTRIX_WHATSAPP_ENABLED=no
+MAUTRIX_WHATSAPP_HOST_PORT_HTTP=29318
+MAUTRIX_WHATSAPP_BOT_USERNAME="whatsappbot"
+MAUTRIX_WHATSAPP_BOT_DISPLAYNAME="WhatsApp bridge bot"
+MAUTRIX_WHATSAPP_BOT_AVATAR="mxc://maunium.net/NeXNQarUbrlYBiPCpprYsRqr"
+MAUTRIX_WHATSAPP_WHATSAPP_OS_NAME="Mautrix-WhatsApp bridge"
+MAUTRIX_WHATSAPP_WHATSAPP_BROWSER_NAME="mx-wa"
+MAUTRIX_WHATSAPP_BRIDGE_PERMISSION=()
 SYNAPSE_VOLUME_HOST_PATH=/volume2/docker/matrix/synapse/data
 ELEMENT_VOLUME_HOST_PATH=/volume2/docker/matrix/element/config
 POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
+MAUTRIX_WHATSAPP_VOLUME_HOST_PATH=/volume2/docker/matrix/mautrix-whatsapp/data
 
 #########################################
 # change optional
@@ -38,6 +47,9 @@ POSTGRES_VOLUME_HOST_PATH=/volume2/docker/matrix/db/data
 
 SYNAPSE_MAX_UPLOAD_SIDE=64M
 SYNAPSE_ENABLE_REGISTRATION=true
+SYNAPSE_REPORT_STATS=no
+SYNAPSE_TZ=Europe/Berlin
+SYNAPSE_NO_TLS=true
 
 POSTGRES_HOST=db
 POSTGRES_DB=synapse
@@ -49,17 +61,14 @@ POSTGRES_PASSWORD=synapse
 #########################################
 
 SYNAPSE_IMAGE=matrixdotorg/synapse:latest
-SYNAPSE_REPORT_STATS=no
-SYNAPSE_TZ=Europe/Berlin
-SYNAPSE_NO_TLS=true
+ELEMENT_IMAGE=vectorim/element-web:latest
+MAUTRIX_WHATSAPP_IMAGE=dock.mau.dev/tulir/mautrix-whatsapp:latest
+POSTGRES_IMAGE=postgres:13.1-alpine
+
 SYNAPSE_DATA_DIR=/data
 SYNAPSE_CONFIG_DIR=/data
 SYNAPSE_CONFIG_PATH=${SYNAPSE_CONFIG_DIR}/homeserver.yaml
 SYNAPSE_WORKER=synapse.app.homeserver
-
-ELEMENT_IMAGE=vectorim/element-web:latest
-
-POSTGRES_IMAGE=postgres:13.1-alpine
 
 # this is needed to configure the database as synapse needs it! Don't touch!
 POSTGRES_INITDB_ARGS="--encoding=UTF-8 --lc-collate=C --lc-ctype=C"

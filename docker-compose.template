@@ -23,6 +23,7 @@ services:
       GID: ${SYNAPSE_GID}
     volumes:
       - ${SYNAPSE_VOLUME_HOST_PATH}:/data
+$([ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ] && echo "      - ${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}/registration.yaml:/data/mautrix-whatsapp/registration.yaml")
 
 $([ "${ELEMENT_ENABLED}" = "yes" ] && cat <<EOF
   element:
@@ -37,6 +38,18 @@ $([ "${ELEMENT_ENABLED}" = "yes" ] && cat <<EOF
 EOF
 )
 
+$([ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ] && cat <<EOF
+  mautrix-whatsapp:
+    image: ${MAUTRIX_WHATSAPP_IMAGE}
+    restart: unless-stopped
+    networks:
+      private: {}
+    ports:
+      - ${MAUTRIX_WHATSAPP_HOST_PORT_HTTP}:29318
+    volumes:
+      - ${MAUTRIX_WHATSAPP_VOLUME_HOST_PATH}:/data
+EOF
+)
 
   ${POSTGRES_HOST}:
     image: ${POSTGRES_IMAGE}
