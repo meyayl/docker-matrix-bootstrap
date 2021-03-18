@@ -225,6 +225,21 @@ function clean(){
             rm -rf "${path}"
         fi
     done
+	restart_nginx=false
+	if [ -e /etc/nginx/conf.d/http.element.conf ];then
+        printf "[ ${GREEN}OK${NC} ] removing element reverse proxy configuration\n"
+        rm /etc/nginx/conf.d/http.element.conf
+	    restart_nginx=true
+	fi
+	if [ -e /etc/nginx/conf.d/http.synapse.conf ];then
+        printf "[ ${GREEN}OK${NC} ] removing synergy reverse proxy configuration\n"
+	    rm /etc/nginx/conf.d/http.synapse.conf
+		restart_nginx=true
+	fi
+	if [ "${restart_nginx}" == "true" ];then
+        printf "[ ${GREEN}OK${NC} ] reloading nginx configuration\n"
+		nginx -s reload
+    fi
 }
 
 
