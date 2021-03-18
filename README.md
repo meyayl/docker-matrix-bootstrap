@@ -28,6 +28,7 @@ If `ELEMENT_ENABLED` is not `yes`, Element will not be deployed and you will hav
 
 ### Clean up
 To perform a clean start, just run `sudo ./run.sh clean`. As a result the bind-mount source folders and the reverse proxy rules will be deleted.
+Make sure to recreate the folders and config using `sudo ./run.sh prepare` before running `./run.sh up -d` again.
 
 ### Write docker-compose.yml to disk
 If you choose to only use the script to bootstrap the initial configuration, you can run `sudo ./run.sh write-compose` to persist the generated docker-compose.yml to disk and use it with docker-compose.
