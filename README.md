@@ -26,6 +26,13 @@ If `ELEMENT_ENABLED` is not `yes`, Element will not be deployed and you will hav
 
 `run.sh` wraps calls to docker-compose, by rendering the variables into the docker-compose.template on the fly and uses the result with docker-compose. The `run.sh` script passes all options and parameters to docker-compose... Thus, whatever works with docker-compose directly, does work with it as well.
 
+### Clean up
+To perform a clean start, just run `sudo ./run.sh clean`. As a result the bind-mount source folders and the reverse proxy rules will be deleted.
+
+### Write docker-compose.yml to disk
+If you choose to only use the script to bootstrap the initial configuration, you can run `sudo ./run.sh write-compose` to persist the generated docker-compose.yml to disk and use it with docker-compose.
+
+
 ## What does the prepare step do?
 Basicly it creates and configures everything required to run the Matrix Synapse server:
 1. It creates data folders for Matrix Synapse, Element and Postgresql and fixes file permissions
