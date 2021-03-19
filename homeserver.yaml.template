@@ -1405,7 +1405,7 @@ report_stats: $([ "${SYNAPSE_REPORT_STATS}" = "no" ] && echo false || echo true 
 # A list of application service config files to use
 #
 app_service_config_files:
-$([ "${ELEMENT_ENABLED}" = "yes" ] && echo "  - \"/data/mautrix-whatsapp/registration.yaml\"")
+$([ "${MAUTRIX_WHATSAPP_ENABLED}" = "yes" ] && echo "  - \"/data/mautrix-whatsapp/registration.yaml\"")
 
 # Uncomment to enable tracking of application service IP addresses. Implicitly
 # enables MAU tracking for application service users.

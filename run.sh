@@ -46,7 +46,7 @@ create_synapse_log_config(){
 
 create_synapse_homeserver_yaml(){
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml" ];then
-        printf "[ ${GREEN}OK${NC} ] running synapse container to generate the homseerver.yaml\n"
+        printf "[ ${GREEN}OK${NC} ] running synapse container to generate the homsesrver.yaml and signing key:\n"
         docker run -it --rm \
             -e SYNAPSE_SERVER_NAME=${SYNAPSE_SERVER_NAME} \
             -e SYNAPSE_REPORT_STATS=${SYNAPSE_REPORT_STATS} \
