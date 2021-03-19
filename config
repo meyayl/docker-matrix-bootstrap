@@ -5,11 +5,11 @@
 
 # this declares the identifier of the synapse server - this is NOT you url
 # see: https://github.com/matrix-org/synapse/blob/master/INSTALL.md#choosing-your-server-name
-SYNAPSE_SERVER_NAME=xxx.de
+SYNAPSE_SERVER_NAME=geekturf.de
 
 # this declares the base of the url to access the synapse server. Used in homeserver.yaml and reverse proxy configuration.
 # explicitly provide the port, even if its port 443!
-SYNAPSE_PUBLIC_BASEURL=https://matrix.xxx.de:8443
+SYNAPSE_PUBLIC_BASEURL=https://matrix.geekturf.de:8443
 
 # synapse container host port. Used in the reverse proxy configuration.
 SYNAPSE_HOST_PORT_HTTP=8008
@@ -23,7 +23,7 @@ ELEMENT_ENABLED=yes
 # this declares the base of the url to access the element server. Used in the reverse proxy configuration.
 # make sure to access element using it's public url.
 # explicitly provide the port, even if its port 443!
-ELEMENT_PUBLIC_BASEURL=https://element.xxx.de:8443
+ELEMENT_PUBLIC_BASEURL=https://element.geekturf.de:8443
 
 # element container host port. Used in the reverse proxy configuration.
 ELEMENT_HOST_PORT_HTTP=8888
