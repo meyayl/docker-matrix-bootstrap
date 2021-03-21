@@ -1,7 +1,7 @@
 # Docker Matrix Bootstrap for Synology Diskstations
 
 This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
-It is specificly designed to work on baremetal a Synology Diskation NAS and will not work in any other environments!
+It is specificly designed to work on a baremetal Synology Diskation NAS and will not work in any other environments!
 
 ## Supported Environments
 Baremetal Synology Diskstations with Docker support.
