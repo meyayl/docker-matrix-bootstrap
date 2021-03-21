@@ -21,7 +21,7 @@ Make sure to have seperate sub domains for Synapse and Element, as running them 
 1. clone git project
 2. edit variables in `config`
 3. execute `sudo ./run.sh prepare`; only proceed with step 4 if no `ERROR` message occoured, otherwise the configuration will be broken!
-4. execute `./run.sh up -d`
+4. execute `sudo ./run.sh up -d`
 5. register user
 - from cli: `docker exec -ti matrix_synapse_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
 - from self-hosted Element: `https://${ELEMENT_PUBLIC_BASEURL}/#/register` (if ELEMENT_ENABLED=yes)
@@ -33,7 +33,7 @@ If `ELEMENT_ENABLED` is not `yes`, Element will not be deployed and you will hav
 
 ### Clean up
 To perform a clean start, just run `sudo ./run.sh clean`. As a result the bind-mount source folders and the reverse proxy rules will be deleted.
-Make sure to recreate the folders and config using `sudo ./run.sh prepare` before running `./run.sh up -d` again.
+Make sure to recreate the folders and config using `sudo ./run.sh prepare` before running `sudo ./run.sh up -d` again.
 
 ### Write docker-compose.yml to disk
 If you choose to only use the script to bootstrap the initial configuration, you can run `sudo ./run.sh write-compose` to persist the generated docker-compose.yml to disk and use it with docker-compose.
@@ -49,4 +49,4 @@ Basicly it creates and configures everything required to run the Matrix Synapse 
 
 _The actions for Element are only performed, if `ELEMENT_ENABLED` is set to `yes` in config._
 
-Though, it does not start the containers... this is done by executing `./run.sh up -d`.
+Though, it does not start the containers... this is done by executing `sudo ./run.sh up -d`.
