@@ -1,7 +1,12 @@
-# Docker Matrix Bootstrap for Synology
+# Docker Matrix Bootstrap for Synology Diskstations
 
 This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
-It is specificly designed to work on a Synology NAS.
+It is specificly designed to work on baremetal a Synology Diskation NAS and will not work in any other environments!
+
+## Supported Environments
+Baremetal Synology Diskstations with Docker support.
+
+Other environments (even if its inside a VM on a Synology Diskstation) are not supported and will result in a broken configuration.
 
 ## Precondition
 The script expects (Let's Encrypt) certificates registered in Synology's certificate manager for:
@@ -15,7 +20,7 @@ Make sure to have seperate sub domains for Synapse and Element, as running them 
 ## How to use
 1. clone git project
 2. edit variables in `config`
-3. execute `sudo ./run.sh prepare`
+3. execute `sudo ./run.sh prepare`; only proceed with step 4 if no `ERROR` message occoured, otherwise the configuration will be broken!
 4. execute `./run.sh up -d`
 5. register user
 - from cli: `docker exec -ti matrix_synapse_1  register_new_matrix_user -c /data/homeserver.yaml http://localhost:8008`
