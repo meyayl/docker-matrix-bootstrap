@@ -58,9 +58,9 @@ create_synapse_homeserver_yaml(){
             -v "${SYNAPSE_VOLUME_HOST_PATH}:${SYNAPSE_CONFIG_DIR}:rw" \
             ${SYNAPSE_IMAGE} generate
         printf "[ ${GREEN}OK${NC} ] generated homeserver.yaml\n"
-		printf "[ ${GREEN}OK${NC} ] stopped synapse container for further configuration\n"
-    else 
-        printf "[ ${GREEN}OK${NC} ] re-using existing homeserver.yaml (delete \"${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml and ${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak\" if you want a fresh start)\n"
+        printf "[ ${GREEN}OK${NC} ] stopped synapse container for further configuration\n"
+    else
+        printf "[ ${GREEN}OK${NC} ] re-using existing homeserver.yaml (delete \"${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml\" and \"${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak\" if you want a fresh start)\n"
     fi
 }
 
@@ -85,7 +85,7 @@ render_synapse_homeserver_yaml(){
     cd $( dirname "$0" )
     if [ ! -e "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak" ]; then
         mv "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml" "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak"
-    fi 
+    fi
     homeserver=$( grep -vE '(^#|\s#|^$)' "${SYNAPSE_VOLUME_HOST_PATH}/homeserver.yaml.bak")
     SYNAPSE_MACAROON_SECRET_KEY=$(grep --perl-regexp --only-matching '(?<=^macaroon_secret_key: ").*(?="$)' <<< "${homeserver}" )
     SYNAPE_REGISTRATION_SHARED_SECRET=$(grep --perl-regexp --only-matching '(?<=^registration_shared_secret: ").*(?="$)' <<< "${homeserver}" )
@@ -123,12 +123,11 @@ render_compose_file_and_execute(){
 }
 
 write_compose(){
-
     opwd="$PWD"
     cd $( dirname "$0" )
     printf "[ ${GREEN}OK${NC} ] render and write docker-compose.yml\n"
     eval "echo \"$(<docker-compose.template)\"" > docker-compose.yml
-	cd "${opwd}"
+    cd "${opwd}"
 }
 
 create_nginx_reverse_proxy_config(){
@@ -225,20 +224,20 @@ function clean(){
             rm -rf "${path}"
         fi
     done
-	restart_nginx=false
-	if [ -e /etc/nginx/conf.d/http.element.conf ];then
+    restart_nginx=false
+    if [ -e /etc/nginx/conf.d/http.element.conf ];then
         printf "[ ${GREEN}OK${NC} ] removing element reverse proxy configuration\n"
         rm /etc/nginx/conf.d/http.element.conf
-	    restart_nginx=true
-	fi
-	if [ -e /etc/nginx/conf.d/http.synapse.conf ];then
+    restart_nginx=true
+    fi
+    if [ -e /etc/nginx/conf.d/http.synapse.conf ];then
         printf "[ ${GREEN}OK${NC} ] removing synergy reverse proxy configuration\n"
-	    rm /etc/nginx/conf.d/http.synapse.conf
-		restart_nginx=true
-	fi
-	if [ "${restart_nginx}" == "true" ];then
+        rm /etc/nginx/conf.d/http.synapse.conf
+        restart_nginx=true
+    fi
+    if [ "${restart_nginx}" == "true" ];then
         printf "[ ${GREEN}OK${NC} ] reloading nginx configuration\n"
-		nginx -s reload
+        nginx -s reload
     fi
 }
 
@@ -265,7 +264,7 @@ case "$1" in
     clean)      clean
                 ;;
     write-compose)   write_compose
-	            ;;
+                ;;
     fixperms)   sanity_check
                 chown_volume_host_paths
                 ;;
