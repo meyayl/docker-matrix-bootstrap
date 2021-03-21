@@ -68,7 +68,5 @@ EOF
       - ${POSTGRES_VOLUME_HOST_PATH}:/var/lib/postgresql/data
       - /etc/passwd:/etc/passwd:ro # required to make user: work!
 
-
-
 networks:
   private: {}
