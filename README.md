@@ -1,3 +1,5 @@
+# NOTE: this project is oprhaned!
+
 # Docker Matrix Bootstrap for Synology Diskstations
 
 This project consists of a script to bootstrap a Matrix Synapse Server, an Element Webapp and a Postgresql Server based on Docker Containers.
